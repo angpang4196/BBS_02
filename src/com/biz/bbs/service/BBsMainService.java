@@ -1,0 +1,263 @@
+package com.biz.bbs.service;
+
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Scanner;
+
+import com.biz.bbs.dao.BBsMainDao;
+import com.biz.bbs.dao.BBsMainDaoImp;
+import com.biz.bbs.vo.BBsMainVO;
+
+/*
+ * Dao와 연계해서 CRUD에 대한 구체적인 실행을 실시하는 class
+ */
+public class BBsMainService {
+
+	/*
+	 * member 변수들을 생성하는 데
+	 */
+
+	/*
+	 * dao.selectAll()에서 return한 bbsMainVO들을 담을 List
+	 */
+	List<BBsMainVO> bbsMainList;
+	// * List : ArrayList, LinkedList를 대표하는 interface이다.
+
+	/*
+	 * 어떤 클래스에 대한 객체를 선언할 때 만약 해당 클래스들을 대표하는 interface가 있으면 interface를 자료형으로 하여
+	 * 선언한다.
+	 */
+	BBsMainDao mainDao;
+	Scanner scan;
+
+	public BBsMainService() {
+		bbsMainList = new ArrayList();
+		mainDao = new BBsMainDaoImp();
+		scan = new Scanner(System.in);
+	}
+
+	public void bbsMenu() {
+
+		while (true) {
+			System.out.println("==================================================");
+			System.out.println("1.리스트보기   2.추가   3.수정   4.삭제   0.종료");
+			System.out.println("--------------------------------------------------");
+			System.out.print("선택 >>> ");
+
+			String strM = scan.nextLine();
+			int intM = Integer.valueOf(strM);
+
+			/* version 1
+			if (intM == 0)
+				return;
+			if (intM == 1)
+				this.viewBBsList();
+			if (intM == 2)
+				this.insertBBS(); // 데이터 추가
+			if (intM == 3)
+				// 수정할 데이터를 확인
+				this.viewBBsList();
+				this.updateBBS(); // 데이터 수정
+			if (intM == 4) {
+				// 삭제할 데이터를 확인
+				this.viewBBsList();
+				this.deleteBBS(); // 데이터 삭제 }
+			 */
+
+			if (intM == 0)
+				return;
+			else if (intM == 2)
+				this.insertBBS();
+			else
+				this.viewBBsList();
+
+			if (intM == 1)
+				this.viewBBsText();
+			if (intM == 3)
+				this.updateBBS();
+			if (intM == 4)
+				this.deleteBBS();
+		}
+	}
+
+	private void viewBBsText() {
+		// TODO 게시판 내용 보기
+		System.out.print("확인할 번호(Enter : 취소) >>> ");
+		String strId = scan.nextLine();
+
+		if (strId.equals("")) {
+			System.out.println("취소");
+			return;
+		}
+		
+		long longId = Long.valueOf(strId);
+
+		BBsMainVO vo = mainDao.findById(longId);
+
+		System.out.println("==================================================");
+		System.out.println("작성일자 : " + vo.getB_date());
+		System.out.println("작성자 : " + vo.getB_auth());
+		System.out.println("제목 : " + vo.getB_subject());
+		System.out.println("내용 : " + vo.getB_text());
+		System.out.println("==================================================");
+
+	}
+
+	/*
+	 * 키보드에서 작성자, 제목, 내용을 입력 받고 현재 컴퓨터 날짜를 작성일자로 하여 DB 저장하기
+	 */
+	private void insertBBS() {
+		// TODO Auto-generated method stub
+
+		System.out.print("작성자 >>> ");
+		String strAuth = scan.nextLine();
+
+		System.out.print("제목 >>> ");
+		String strSubject = scan.nextLine();
+
+		System.out.print("내용 >>> ");
+		String strText = scan.nextLine();
+
+		// 작성일자 생성
+		// Old 버전
+		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
+		Date today = new Date();
+
+		String strDate = sf.format(today);
+
+		// New 버전
+		LocalDate ld = LocalDate.now();
+		strDate = ld.toString();
+
+		// 변수를 VO에 담기
+		BBsMainVO vo = new BBsMainVO();
+
+		vo.setB_date(strDate);
+		vo.setB_auth(strAuth);
+		vo.setB_subject(strSubject);
+		vo.setB_text(strText);
+
+		// vo를 dao에게 전달
+		mainDao.insert(vo);
+
+	}
+
+	private void updateBBS() {
+		// TODO 게시판 리스트에서 번호를 선택하면 수정 시작
+		System.out.print("수정할 번호(Enter : 수정 취소) >>> ");
+		String strId = scan.nextLine();
+
+		if (strId.equals("")) {
+			System.out.println("수정이 취소되었습니다.");
+			return;
+		}
+
+		long longId = Long.valueOf(strId);
+
+		BBsMainVO vo = mainDao.findById(longId);
+
+		System.out.println("수정 : 내용입력, 수정취소 : Enter");
+		System.out.println("==================================================");
+		System.out.println("작성자 : " + vo.getB_auth());
+		System.out.print("수정 : ");
+		String strAuth = scan.nextLine();
+
+		System.out.println("제목 : " + vo.getB_subject());
+		System.out.print("수정 : ");
+		String strSubject = scan.nextLine();
+
+		System.out.println("내용 : " + vo.getB_text());
+		System.out.print("수정 : ");
+		String strText = scan.nextLine();
+
+		/*
+		 * 만약 내용(작성자, 제목, 내용)을 입력하지 않고 Enter만 입력했으면 원래 내용을 그대로 유지하도록 한다.
+		 */
+
+		if (strAuth.equals("") == false) {
+			vo.setB_auth(strAuth);
+		}
+		if (!strSubject.equals("")) {
+			vo.setB_subject(strSubject);
+		}
+		if (!strText.equals("")) {
+			vo.setB_text(strText);
+		}
+
+		mainDao.update(vo);
+		System.out.println("업데이트 완료");
+
+	}
+
+	private void deleteBBS() {
+		// TODO 게시판 삭제하기
+
+		System.out.print("삭제할 번호(Enter : 취소) >>> ");
+		String strId = scan.nextLine();
+
+		if (strId.equals("")) {
+			System.out.println("삭제가 취소되었습니다.");
+			return;
+		}
+
+		long longId = Long.valueOf(strId);
+
+		// 삭제하기 전에 삭제할 데이터를 먼저 다시 확인 시켜주자.
+
+		// id를 기준으로 데이터 1개 가져오기
+		BBsMainVO vo = mainDao.findById(longId);
+
+		System.out.println("==================================================");
+		System.out.println("삭제할 데이터 확인");
+		System.out.println("--------------------------------------------------");
+		System.out.println("작성일자 : " + vo.getB_date());
+		System.out.println("작성자 : " + vo.getB_auth());
+		System.out.println("제목 : " + vo.getB_subject());
+		System.out.println("내용 : " + vo.getB_text());
+		System.out.println("==================================================");
+		System.out.print("정말 삭제할까요? (YES) >>> ");
+
+		String confirm = scan.nextLine();
+
+		if (confirm.equals("YES")) {
+			mainDao.delete(longId);
+			System.out.println("삭제 완료");
+		} else {
+			System.out.println("입력 오류");
+		}
+
+	}
+
+	/*
+	 * 게시판 List를 보는 method() 선언
+	 */
+	public void viewBBsList() {
+
+		/*
+		 * 현재 시각 아직 selectAll()이 구현이 되어 있지 않지만 service 입장에서는 selectAll()이 게시판 전체 리스트를
+		 * return 해 줄것이라는 가정을 하고 나머지 코드를 작성할 수 있다.
+		 */
+
+		bbsMainList = mainDao.selectAll();
+
+		System.out.println("==================================================");
+		System.out.println("나의 게시판 v1.1");
+		System.out.println("==================================================");
+		System.out.printf("%5s   %-10s%-15s%s%s\n", "NO", "날짜", "작성자", "제목", "내용");
+		System.out.println("--------------------------------------------------");
+		if (bbsMainList == null) {
+			System.out.println("데이터 없음");
+		} else {
+			for (BBsMainVO vo : bbsMainList) {
+				System.out.printf("%5s\t", vo.getB_id());
+				System.out.printf("%-12s", vo.getB_date());
+				System.out.printf("%-15s", vo.getB_auth());
+				System.out.printf(vo.getB_subject() + "\n");
+
+			}
+		}
+	}
+}
